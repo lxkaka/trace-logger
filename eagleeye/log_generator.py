@@ -60,8 +60,13 @@ class EagleEyeLogger(object):
         self.logger = logger
 
     def entry_log(self, **kwargs):
-        trace_id = kwargs.pop("trace_id")
-        rpc_id = kwargs.pop("rpc_id")
+        """
+        此方法可记录两类日志，包括
+        自定义入口 rpc_type为 90
+        自定义服务端 rpc_type为 92
+        """
+        trace_id = kwargs.pop("trace_id", None)
+        rpc_id = kwargs.pop("rpc_id", None)
         time_stamp = kwargs.pop("start_time", "")
         span = kwargs.pop("span", "")
         result_code = "00" if kwargs.pop("result_code") == 200 else "01"
@@ -71,7 +76,7 @@ class EagleEyeLogger(object):
 
         if trace_id and rpc_id:
             rpc_type = "92"  # 自定义服务端
-            request_size, response_size = HandleArgs.get_size(kwargs.pop('response'))
+            request_size, response_size = HandleArgs.get_size(kwargs.pop('response', None))
             remote_ip = HandleArgs.get_remote_ip(url) or "0.0.0.0"
             INITIAL_PARAMS.eagleeye_trace_id = trace_id
             INITIAL_PARAMS.eagleeye_rpc_id = rpc_id
@@ -84,8 +89,8 @@ class EagleEyeLogger(object):
                         ts=HandleArgs.pretty_string(time_stamp),
                         rpc_type=rpc_type,
                         rpc_id=INITIAL_PARAMS.eagleeye_rpc_id,
-                        service=kwargs.pop("url"),
-                        method=kwargs.pop("method"),
+                        service=url,
+                        method=kwargs.pop("method", ""),
                         code=result_code,
                         remote_ip=remote_ip,
                         span=HandleArgs.pretty_string(span),
@@ -115,27 +120,44 @@ class EagleEyeLogger(object):
         self.logger.info(_message)
 
     def client_log(self, **kwargs):
-        rpc_type = "91"  # 自定义客户端
-        headers = kwargs.pop("headers", {})
+        """
+        自定义客户端包括三类，
+        RPC客户端 rpc_type为 91，
+        存储客户端 rpc_type为 94，
+        缓存客户端 rpc_type为 95
+        """
+        trace_id = INITIAL_PARAMS.eagleeye_trace_id
+        rpc_id = RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id)
+        user_data = INITIAL_PARAMS.eagleeye_user_data
+        rpc_type = kwargs.pop("rpc_type", None)
+        rpc_type = rpc_type if rpc_type in ["91", "94", "95"] else ""
         time_stamp = kwargs.pop("start_time", "")
         url = kwargs.pop("url", "")
-        remote_ip = HandleArgs.get_remote_ip(url) or "0.0.0.0"
+        service_name = kwargs.pop("service_name", None)
+        if not service_name:
+            service_name = url
+        remote_ip = kwargs.pop("remote_ip", None)
+        if not remote_ip:
+            remote_ip = HandleArgs.get_remote_ip(url) or "0.0.0.0"
         gap = kwargs.pop("gap", "0")
         span = kwargs.pop("span", "")
-        result_code = "00" if kwargs.pop("result_code") == 200 else "01"
-        request_size, response_size = HandleArgs.get_size(kwargs.pop('response'))
+        result_code = "00" if kwargs.pop("result_code", "") == 200 else "01"
+        request_size = kwargs.pop("request_size", "")
+        response_size = kwargs.pop("response_size", "")
+        if not request_size or not response_size:
+            request_size, response_size = HandleArgs.get_size(kwargs.pop('response', None))
         ext_info = kwargs.pop("ext_info", "")
 
         # 日志格式，自定义客户端 traceId|timestamp|rpcType|rpcId|serviceName|method|remoteIp|span|resultCode|
         # requestSize|responseSize|extInfo|userData
         _message = "{trace_id}|{ts}|{rpc_type}|{rpc_id}|{service}|{method}|{remote_ip}|[{gap},{span}]|{code}|" \
                    "{req_size}|{res_size}|{ext_info}|{user_data}".format(
-                    trace_id=headers.get('EagleEye-TraceId'),
+                    trace_id=trace_id,
                     ts=HandleArgs.pretty_string(time_stamp),
                     rpc_type=rpc_type,
-                    rpc_id=headers.get('EagleEye-RpcId'),
-                    service=kwargs.pop("url"),
-                    method=kwargs.pop("method"),
+                    rpc_id=rpc_id,
+                    service=service_name,
+                    method=kwargs.pop("method", ""),
                     remote_ip=remote_ip,
                     gap=HandleArgs.pretty_string(gap),
                     span=HandleArgs.pretty_string(span),
@@ -143,7 +165,7 @@ class EagleEyeLogger(object):
                     req_size=request_size,
                     res_size=response_size,
                     ext_info=ext_info,
-                    user_data=headers.get('EagleEye-UserData', '')
+                    user_data=user_data
                     )
         self.logger.info(_message)
 
