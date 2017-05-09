@@ -13,7 +13,7 @@
 ## 使用说明
 
 ### 日志简介
-日志位置： 一般在 ~/logs/eagleeye/eagleeye.log 下面, 可就放在系统的日志目录下。
+日志位置： 一般在 ~/logs/eagleeye/eagleeye.log 下面, 可自定义。
 * EagleEye日志以竖线'|'分割
 * EagleEye日志的前三个字段固定，含义为traceId|timestamp|rpcType|...
 * 不同rpcType对应日志的余下字段个数、含义及顺序会略有不同
@@ -38,9 +38,11 @@
 * 日志格式: traceId|timestamp|rpcType|span|rpcId|resultCode|traceName|extInfo|userData
 rpc_type固定为90，不需要作为参数传入
 
-* 调用API: eagleeye.log_generator.EagleEyeLogger.entry_log
-* 调用示例：
-、、、python
+* 调用API: `eagleeye.log_generator.EagleEyeLogger.entry_log`
+
+* 调用示例:
+
+```python
     _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
@@ -56,16 +58,17 @@ rpc_type固定为90，不需要作为参数传入
         ext_info=ext_info,
         user_data=user_data
     )
-、、、
+```
+
 * 日志配置示例:
-、、、python
+
+```Python
 import os
 LOG_ROOT = os.path.abspath(os.path.dirname(__file__))
 EAGLEEYE_LOG = "eagleeye_log"
-
 log_conf = {
     "version": 1,
-    'disable_existing_loggers': False,
+    "disable_existing_loggers": False,
     "formatters": {
         "log_form": {
             "format": "%(message)s"
@@ -88,23 +91,26 @@ log_conf = {
         }
     },
 }
-、、、
+```
+
 自定义入口我们一般使用url作为traceName
 
 ### 自定义服务端
 * 日志格式：traceId|timestamp|rpcType|rpcId|serviceName|method|resultCode|remoteIp|span|responseSize|extInfo|userData
 rpc_type固定为92，不需要作为参数传入
-需要从请求头中取出透传的 *EagleEye-TraceId*, *EagleEye-RpcId*, *EagleEye-UserData*, 然后把相关参数传入调用的API
-* 调用API: eagleeye.log_generator.EagleEyeLogger.entry_log
-* 调用示例：
-、、、python
- _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
+需要从请求头中取出透传的 **EagleEye-TraceId**, **EagleEye-RpcId**, **EagleEye-UserData**, 然后把相关参数传入调用的API
+* 调用API: `eagleeye.log_generator.EagleEyeLogger.entry_log`
+
+* 调用示例:
+
+```python
+_logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
     span = 20
     result_code = 200
 
- logger.entry_log(                          # 其他参数根据需要进行传递
+logger.entry_log(                          # 其他参数根据需要进行传递
             trace_id=trace_id,
             rpc_id=rpc_id,
             start_time=start_time,
@@ -117,34 +123,40 @@ rpc_type固定为92，不需要作为参数传入
             ext_info=ext_info;
             user_data=user_data
         )
-、、、
-自定义服务端我们一般使用url作为serviceName；remote_ip如果不传，会取url的host作为remote_ip, 默认为 "0.0.0.0"
-关于response_size可以直接传入参数response_size, 也可传入response对象。默认为0
+```
+
+自定义服务端我们一般使用url作为serviceName。remote_ip如果不传，会取url的host作为remote_ip, 默认为 "0.0.0.0"
+关于response_size可以直接传入参数response_size，也可传入response对象，默认为0
 
 ### 自定义客户端
-*自定义客户端包括三类，
-        -RPC客户端 rpc_type为 91，
-        -存储客户端 rpc_type为 94，
-        -缓存客户端 rpc_type为 95
+* 自定义客户端包括三类，
+ - RPC客户端 rpc_type为 91
+ - 存储客户端 rpc_type为 94
+ - 缓存客户端 rpc_type为 95
 * 日志格式：traceId|timestamp|rpcType|rpcId|serviceName|method|remoteIp|span|resultCode|requestSize|responseSize|extInfo|userData
 如调用其他服务，rpc_type为 91。在整个调用链中，每次RPC调用需要透传EagleEye的TraceID、RpcID和用户数据等上下文信息
-1. 通过 http header 透传*EagleEye-TraceId*, *EagleEye-RpcId*, *EagleEye-UserData*
-调用API eagleeye.log_generator.EagleEyeLogger.transfer_eagleeye_params
-示例
-、、、python
-header = EagleEyeLogger.transfer_eagleeye_params(header)
-、、、
+* 通过 http header 透传**EagleEye-TraceId**, **EagleEye-RpcId**, **EagleEye-UserData**
 
-2.调用API埋点：eagleeye.log_generator.EagleEyeLogger.client_log
-调用示例：
-、、、python
+    调用API `eagleeye.log_generator.EagleEyeLogger.transfer_eagleeye_params`
+
+    示例:
+
+    ```Python
+    header = EagleEyeLogger.transfer_eagleeye_params(header)
+    ```
+
+* 调用API埋点：`eagleeye.log_generator.EagleEyeLogger.client_log`
+
+调用示例:
+
+```Python
 _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
     span = 20
     result_code = 200
 
- logger.entry_log(                          # 其他参数根据需要进行传递
+logger.entry_log(                          # 其他参数根据需要进行传递
             rpc_type = "91",
             start_time=start_time,
             url=url,
@@ -158,6 +170,7 @@ _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要�
             ext_info=ext_info;
             user_data=user_data
         )
-、、、
-自定义客户端我们一般使用url作为serviceName；remote_ip如果不传，会取url的host作为remote_ip, 默认为 "0.0.0.0"
-关于response_size可以直接传入参数response_size, 也可传入response对象。默认为0
+```
+
+自定义客户端我们一般使用url作为serviceName。remote_ip如果不传，会取url的host作为remote_ip，默认为 "0.0.0.0"
+关于response_size可以直接传入参数response_size，也可传入response对象，默认为0
