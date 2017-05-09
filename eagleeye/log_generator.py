@@ -127,10 +127,12 @@ class EagleEyeLogger(object):
         缓存客户端 rpc_type为 95
         """
         trace_id = INITIAL_PARAMS.eagleeye_trace_id
-        rpc_id = RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id)
+        rpc_type = kwargs.pop("rpc_type", "")
+        if rpc_type == "91":
+            rpc_id = INITIAL_PARAMS.eagleeye_rpc_id
+        elif rpc_type in ["94", "95"]:
+            rpc_id = RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id)
         user_data = INITIAL_PARAMS.eagleeye_user_data
-        rpc_type = kwargs.pop("rpc_type", None)
-        rpc_type = rpc_type if rpc_type in ["91", "94", "95"] else ""
         time_stamp = kwargs.pop("start_time", "")
         url = kwargs.pop("url", "")
         service_name = kwargs.pop("service_name", None)
@@ -171,9 +173,10 @@ class EagleEyeLogger(object):
 
     @staticmethod
     def transfer_eagleeye_params(header):
+        INITIAL_PARAMS.eagleeye_rpc_id = RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id)
         eagleeye_header = {
             "EagleEye-TraceId": INITIAL_PARAMS.eagleeye_trace_id,
-            "EagleEye-RpcId": RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id),
+            "EagleEye-RpcId": INITIAL_PARAMS.eagleeye_rpc_id,
             "EagleEye-UserData": INITIAL_PARAMS.eagleeye_user_data
         }
 

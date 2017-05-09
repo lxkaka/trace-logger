@@ -52,7 +52,8 @@ class EagleeyeTest(unittest.TestCase):
     def test_client(self):
         logger = EagleEyeLogger(self._logger)
         INITIAL_PARAMS.eagleeye_trace_id = TraceIdGenerator.get_trace_id()
-        INITIAL_PARAMS.eagleeye_rpc_id = "0.1.2"
+        INITIAL_PARAMS.eagleeye_rpc_id = "0.1."
+
         logger.client_log(
             rpc_type="91",
             start_time=self.start_time,
