@@ -62,7 +62,7 @@ rpc_type固定为90，不需要作为参数传入
 
 * 日志配置示例:
 
-```Python
+```python
 import os
 LOG_ROOT = os.path.abspath(os.path.dirname(__file__))
 EAGLEEYE_LOG = "eagleeye_log"
@@ -141,7 +141,7 @@ logger.entry_log(                          # 其他参数根据需要进行传�
 
     示例:
 
-    ```Python
+    ```python
     header = EagleEyeLogger.transfer_eagleeye_params(header)
     ```
 
@@ -149,7 +149,7 @@ logger.entry_log(                          # 其他参数根据需要进行传�
 
 调用示例:
 
-```Python
+```python
 _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
