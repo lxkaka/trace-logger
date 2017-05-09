@@ -56,7 +56,7 @@ rpc_type固定为90，不需要作为参数传入
         span=span,
         result_code=result_code,
         ext_info=ext_info,
-        user_data=user_data
+        user_data=user_data,
     )
 ```
 
@@ -120,8 +120,8 @@ logger.entry_log(                          # 其他参数根据需要进行传�
             result_code=result_code,
             remote_ip=remote_ip,
             response_size="216",
-            ext_info=ext_info;
-            user_data=user_data
+            ext_info=ext_info,
+            user_data=user_data,
         )
 ```
 
@@ -161,14 +161,14 @@ logger.entry_log(                          # 其他参数根据需要进行传�
             start_time=start_time,
             url=url,
             method="get",
-            gap=10                         #  调用开始到客户端发送请求的时间差
+            gap=10,                         #  调用开始到客户端发送请求的时间差
             span=span,                     #  调用开始到收到响应的时间差
             result_code=result_code,
             remote_ip=remote_ip,
             request_size="123",
             response_size="321",
-            ext_info=ext_info;
-            user_data=user_data
+            ext_info=ext_info,
+            user_data=user_data,
         )
 ```
 
