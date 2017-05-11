@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import urlparse
 from re import match, compile
-from.trace_builder import TraceIdGenerator
-from.rpc_updater import INITIAL_PARAMS, RpcIdUpdater
+from trace_builder import TraceIdGenerator
+from rpc_updater import INITIAL_PARAMS, RpcIdUpdater
 
 
 class HandleArgs(object):
