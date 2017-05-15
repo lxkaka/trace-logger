@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
-import urlparse
 from time import time
 from os import getpid
 from re import match, compile

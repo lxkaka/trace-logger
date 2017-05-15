@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import urlparse
 from re import match, compile
-from trace_builder import TraceIdGenerator
-from rpc_updater import INITIAL_PARAMS, RpcIdUpdater
+from .trace_builder import TraceIdGenerator
+from .rpc_updater import INITIAL_PARAMS, RpcIdUpdater
 
 
 class HandleArgs(object):
@@ -76,8 +76,12 @@ class EagleEyeLogger(object):
 
         if trace_id and rpc_id:
             rpc_type = "92"  # 自定义服务端
-            request_size, response_size = HandleArgs.get_size(kwargs.pop('response', None))
-            remote_ip = HandleArgs.get_remote_ip(url) or "0.0.0.0"
+            response_size = kwargs.pop("response_size", "")
+            if not response_size:
+                request_size, response_size = HandleArgs.get_size(kwargs.pop('response', None))
+            remote_ip = kwargs.pop("remote_ip", None)
+            if not remote_ip:
+                remote_ip = HandleArgs.get_remote_ip(url) or "0.0.0.0"
             INITIAL_PARAMS.eagleeye_trace_id = trace_id
             INITIAL_PARAMS.eagleeye_rpc_id = rpc_id
 
@@ -132,7 +136,7 @@ class EagleEyeLogger(object):
             rpc_id = INITIAL_PARAMS.eagleeye_rpc_id
         elif rpc_type in ["94", "95"]:
             rpc_id = RpcIdUpdater.update_rpc_id(INITIAL_PARAMS.eagleeye_rpc_id)
-        user_data = INITIAL_PARAMS.eagleeye_user_data
+        user_data = INITIAL_PARAMS.eagleeye_user_data or ""
         time_stamp = kwargs.pop("start_time", "")
         url = kwargs.pop("url", "")
         service_name = kwargs.pop("service_name", None)

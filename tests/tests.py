@@ -6,7 +6,7 @@ from logging.config import dictConfig
 import time
 from eagleeye.trace_builder import TraceIdGenerator
 from eagleeye.rpc_updater import RpcIdUpdater, INITIAL_PARAMS
-from eagleeye.log_generator import EagleEyeLogger
+from eagleeye.log_maker import EagleEyeLogger
 from eagleeye.logger_configuration import EAGLEEYE_LOG, log_conf
 
 
