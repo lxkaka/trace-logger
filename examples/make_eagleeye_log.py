@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import logging
-from eagleeye import EagleEyeLogger
+from trace_logger import TraceLogger
 
 
 # 生成鹰眼埋点实例，参数为logging库配置的logger对象。(配置可参考logger_configuration)
@@ -11,7 +11,7 @@ start_time = int(time.time() * 1000)
 url = 'http://127.0.0.1:8080/test/kaka?pa=1&sign=abc'
 span = 20  # 调用开始到收到响应的时间差
 result_code = 200
-logger = EagleEyeLogger(_logger)
+logger = TraceLogger(_logger)
 response = None
 remote_ip = '192.168.1.1'
 method = 'post'
@@ -35,7 +35,7 @@ logger.entry_log(trace_id=trace_id, rpc_id=rpc_id, start_time=start_time, span=s
 # 关于request_size, response_size可以直接传入参数，也可传入response对象，默认为0
 # 首先更新rpc_id, 更新请求头。通过 http header 透传EagleEye-TraceId, EagleEye-RpcId, EagleEye-UserData
 header = None  # http请求头
-header = EagleEyeLogger.transfer_eagleeye_params(header)
+header = TraceLogger.transfer_tracelogger_params(header)
 rpc_type = '91'
 gap = '5'  # 调用开始到客户端发送请求的时间差
 logger.client_log(rpc_type=rpc_type, start_time=start_time, span=span, url=url, method=method, gap=gap,

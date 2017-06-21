@@ -1,11 +1,9 @@
-# Python 鹰眼API
+# Python 链路日志API
 
-鹰眼相关说明可阅读文档[eagleeye-docs](http://gitlab.alibaba-inc.com/middleware/eagleeye-docs/wikis/eagleeye-custom-usage)
-
-此模块实现了Python版本的鹰眼埋点API, 开发语言为Python的系统可调用本模块提供的API进行日志埋点。
+此模块实现了Python版本的链路日志埋点API, 开发语言为Python的系统可调用本模块提供的API进行日志埋点。
 实现以下功能：
-* 生成鹰眼日志的trace_id
-* 更新鹰眼日志的rpc_id
+* 生成链路日志的trace_id
+* 更新链路日志的rpc_id
 * 自定义入口埋点
 * 自定义客户端埋点
 * 自定义服务端埋点(包括自定义存储）
@@ -13,9 +11,8 @@
 ## 使用说明
 
 ### 日志简介
-日志位置： 一般在 ~/logs/eagleeye/eagleeye.log 下面, 可自定义。
-* EagleEye日志以竖线'|'分割
-* EagleEye日志的前三个字段固定，含义为traceId|timestamp|rpcType|...
+* 日志以竖线'|'分割
+* 日志的前三个字段固定，含义为traceId|timestamp|rpcType|...
 * 不同rpcType对应日志的余下字段个数、含义及顺序会略有不同
 日志示例：1e1cb47b14942139800801000dda2d|1494213980080|91|0.1|http://127.0.0.1:8080/test/kaka?pa=1&sign=abc||127.0.0.1|[0,20]|00|123|321|||
 
@@ -32,24 +29,24 @@
 * requestSize：客户端请求的大小(默认为0)
 * responseSize：服务端响应的大小(默认为0)
 * extInfo：用户附加的扩展数据，可选
-* userData：业务自定义数据，可选，[详细信息](http://gitlab.alibaba-inc.com/middleware/eagleeye-docs/wikis/eagleeye-core-userdata)
+* userData：业务自定义数据，可选
 
 ### 自定义入口
 * 日志格式: traceId|timestamp|rpcType|span|rpcId|resultCode|traceName|extInfo|userData
 rpc_type固定为90，不需要作为参数传入
 
-* 调用API: `eagleeye.log_generator.EagleEyeLogger.entry_log`
+* 调用API: `trace_logger.log_generator.TraceLogger.entry_log`
 
 * 调用示例:
 
 ```python
-    _logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
+    _logger = logging.getLogger(TRACE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
     span = 20
     result_code = 200
 
-    logger = EagleEyeLogger(self._logger)
+    logger = TraceLogger(self._logger)
     logger.entry_log(                     # 其他参数根据需要进行传递
         start_time=start_time,
         url=url,
@@ -65,7 +62,7 @@ rpc_type固定为90，不需要作为参数传入
 ```python
 import os
 LOG_ROOT = os.path.abspath(os.path.dirname(__file__))
-EAGLEEYE_LOG = "eagleeye_log"
+TRACE_LOG = "trace_log"
 log_conf = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -76,17 +73,17 @@ log_conf = {
     },
     "filters": {},
     "handlers": {
-        EAGLEEYE_LOG: {
+        Trace_LOG: {
             "level": "INFO",
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": os.path.join(LOG_ROOT, "../logs/eagleeye.log"),
+            "filename": os.path.join(LOG_ROOT, "../logs/tracelogger.log"),
             "formatter": "log_form",
             "when": "midnight",
         }
     },
     "loggers": {
-        EAGLEEYE_LOG: {
-            "handlers": [EAGLEEYE_LOG],
+        TRACE_LOG: {
+            "handlers": [TRACE_LOG],
             "level": "INFO",
         }
     },
@@ -98,13 +95,13 @@ log_conf = {
 ### 自定义服务端
 * 日志格式：traceId|timestamp|rpcType|rpcId|serviceName|method|resultCode|remoteIp|span|responseSize|extInfo|userData
 rpc_type固定为92，不需要作为参数传入
-需要从请求头中取出透传的 **EagleEye-TraceId**, **EagleEye-RpcId**, **EagleEye-UserData**, 然后把相关参数传入调用的API
-* 调用API: `eagleeye.log_generator.EagleEyeLogger.entry_log`
+需要从请求头中取出透传的 **TraceLogger-TraceId**, **TraceLogger-RpcId**, **TraceLogger-UserData**, 然后把相关参数传入调用的API
+* 调用API: `trace_logger.log_generator.TraceLogger.entry_log`
 
 * 调用示例:
 
 ```python
-_logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
+_logger = logging.getLogger(TRACE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
     span = 20
@@ -134,23 +131,23 @@ logger.entry_log(                          # 其他参数根据需要进行传�
  - 存储客户端 rpc_type为 94
  - 缓存客户端 rpc_type为 95
 * 日志格式：traceId|timestamp|rpcType|rpcId|serviceName|method|remoteIp|span|resultCode|requestSize|responseSize|extInfo|userData
-如调用其他服务，rpc_type为 91。在整个调用链中，每次RPC调用需要透传EagleEye的TraceID、RpcID和用户数据等上下文信息
-* 通过 http header 透传**EagleEye-TraceId**, **EagleEye-RpcId**, **EagleEye-UserData**
+如调用其他服务，rpc_type为 91。在整个调用链中，每次RPC调用需要透传TraceID、RpcID和用户数据等上下文信息
+* 通过 http header 透传**TraceLogger-TraceId**, **TraceLogger-RpcId**, **TraceLogger-UserData**
 
-    调用API `eagleeye.log_generator.EagleEyeLogger.transfer_eagleeye_params`
+    调用API `trace_logger.log_generator.TRACELogger.transfer_tracelogger_params`
 
     示例:
 
     ```python
-    header = EagleEyeLogger.transfer_eagleeye_params(header)
+    header = TraceLogger.transfer_tracelogger_params(header)
     ```
 
-* 调用API埋点：`eagleeye.log_generator.EagleEyeLogger.client_log`
+* 调用API埋点：`trace_logger.log_generator.TraceLogger.client_log`
 
 调用示例:
 
 ```python
-_logger = logging.getLogger(EAGLEEYE_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
+_logger = logging.getLogger(Trace_LOG)  # 注意这里的日志名字需要调用方按照自己系统的情况配置
     start_time = int(time.time() * 1000)
     url = "http://127.0.0.1:8080/test/kaka?pa=1&sign=abc"
     span = 20
@@ -181,17 +178,17 @@ logger.entry_log(                          # 其他参数根据需要进行传�
 # -*- coding: utf-8 -*-
 import time
 import logging
-from eagleeye import EagleEyeLogger
+from trace_logger import TraceLogger
 
 
-# 生成鹰眼埋点实例，参数为logging库配置的logger对象。(配置可参考logger_configuration)
+# 生成链路日志埋点实例，参数为logging库配置的logger对象。(配置可参考logger_configuration)
 # 也可以实现info方法，用任意的文件对象记录日志
-_logger = logging.getLogger('eagleeye_log')
+_logger = logging.getLogger('trace_log')
 start_time = int(time.time() * 1000)
 url = 'http://127.0.0.1:8080/test/kaka?pa=1&sign=abc'
 span = 20  # 调用开始到收到响应的时间差
 result_code = 200
-logger = EagleEyeLogger(_logger)
+logger = TraceLogger(_logger)
 response = None
 remote_ip = '192.168.1.1'
 method = 'post'
@@ -213,9 +210,9 @@ logger.entry_log(trace_id=trace_id, rpc_id=rpc_id, start_time=start_time, span=s
 # 自定义客户端埋点
 # 我们一般使用url作为serviceName。remote_ip如果不传，会取url的host作为remote_ip，默认为 "0.0.0.0"
 # 关于request_size, response_size可以直接传入参数，也可传入response对象，默认为0
-# 首先更新rpc_id, 更新请求头。通过 http header 透传EagleEye-TraceId, EagleEye-RpcId, EagleEye-UserData
+# 首先更新rpc_id, 更新请求头。通过 http header 透传TraceLogger-TraceId, TraceLogger-RpcId, TraceLogger-UserData
 header = None  # http请求头
-header = EagleEyeLogger.transfer_eagleeye_params(header)
+header = TraceLogger.transfer_tracelogger_params(header)
 rpc_type = '91'
 gap = '5'  # 调用开始到客户端发送请求的时间差
 logger.client_log(rpc_type=rpc_type, start_time=start_time, span=span, url=url, method=method, gap=gap,

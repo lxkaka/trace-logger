@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(
-    name='eagleeye-py',
+    name='trace-logger',
     version='1.0',
-    description='ealeeye logger maker',
+    description='trace logger maker',
     long_description=open('README.md').read(),
-    url='http://gitlab.alibaba-inc.com/linxiao.wlx/eagleeye-py/',
-    author='linxiao.wlx',
-    author_email='linxiao.wlx@alibaba-inc.com',
-    packages=['eagleeye'],
+    url='https://github.com/lxkaka/trace-logger',
+    author='lxkaka',
+    author_email='linxiaoking@gmail.com',
+    packages=['trace_logger'],
     zip_safe=False,
     classifiers=[
         'Intended Audience :: Developers',
